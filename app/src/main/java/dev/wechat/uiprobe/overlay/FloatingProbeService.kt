@@ -34,7 +34,7 @@ class FloatingProbeService(private val context: Context, private val onScan: () 
             setPadding(dp(4), dp(4), dp(4), dp(4))
             background = GradientDrawable().apply { setColor(Color.rgb(22, 107, 82)); cornerRadius = dp(20).toFloat() }
         }
-        val scan = Button(context).apply {
+        val scan = DragScanButton(context).apply {
             text = "扫描"
             contentDescription = "点击读取一次当前微信 UI，按住拖动悬浮按钮"
             isAllCaps = false
@@ -119,5 +119,10 @@ class FloatingProbeService(private val context: Context, private val onScan: () 
             scanButton = null
             AccessibilityStateRepository.overlay(false)
         }
+    }
+
+    // Route both touch release and accessibility clicks through the normal Button click path.
+    private class DragScanButton(context: Context) : Button(context) {
+        override fun performClick(): Boolean = super.performClick()
     }
 }

@@ -4,7 +4,6 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.ClipData
 import android.content.ComponentName
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
@@ -20,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import dev.wechat.uiprobe.accessibility.AccessibilityStateRepository
 import dev.wechat.uiprobe.accessibility.WeChatAccessibilityService
@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
                         when {
                             service == null -> AccessibilityStateRepository.status("请先开启并连接无障碍服务。")
                             !Settings.canDrawOverlays(this) -> openSettings(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                Uri.parse("package:$packageName")))
+                                "package:$packageName".toUri()))
                             else -> service.setFloatingProbeVisible(!AccessibilityStateRepository.state.value.overlayVisible)
                         }
                     },
