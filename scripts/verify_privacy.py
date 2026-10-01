@@ -22,6 +22,10 @@ for path in manifests:
                    for service in app.findall("service"))
 
 source = root / "app/src/main/java/dev/wechat/uiprobe"
+backup_rules = ET.parse(root / "app/src/main/res/xml/data_extraction_rules.xml").getroot()
+for section in ("cloud-backup", "device-transfer"):
+    assert any(rule.get("domain") == "file" and rule.get("path") == "."
+               for rule in backup_rules.find(section).findall("exclude")), f"Private exports can enter {section}"
 for path in source.rglob("*.kt"):
     content = path.read_text(encoding="utf-8")
     assert not re.search(r"\b(?:performAction|dispatchGesture|takeScreenshot)\s*\(", content), path
