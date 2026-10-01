@@ -52,6 +52,9 @@ class WeChatAccessibilityService : AccessibilityService() {
         scope.launch {
             val started = SystemClock.elapsedRealtime()
             try {
+                // Invalidate only this service's node cache for this explicit user request.
+                // Window-event callbacks still never read a tree.
+                if (Build.VERSION.SDK_INT >= 33) clearCache()
                 val root = rootInActiveWindow
                 Log.i(TAG, "User scan rootExists=${root != null}")
                 if (root == null) {
@@ -69,6 +72,9 @@ class WeChatAccessibilityService : AccessibilityService() {
                         AccessibilityStateRepository.status("当前活动窗口不是微信。请在微信前台点击悬浮扫描按钮。")
                         return@launch
                     }
+                    Log.i(TAG, "Root metadata classPresent=${root.className != null} " +
+                        "visible=${root.isVisibleToUser} children=${root.childCount} " +
+                        "sensitive=${if (Build.VERSION.SDK_INT >= 34) root.isAccessibilityDataSensitive else null}")
                     tree = withContext(Dispatchers.Default) { NodeTreeScanner().scan(root) }
                 } finally { releaseNode(root) }
                 val device = deviceData()
@@ -83,8 +89,12 @@ class WeChatAccessibilityService : AccessibilityService() {
                 }
                 val summary = withContext(Dispatchers.IO) { ProbeStorage.exporter(this@WeChatAccessibilityService).export(report) }
                 AccessibilityStateRepository.latest(summary)
-                AccessibilityStateRepository.status(if (summary.warnings.isEmpty()) "扫描完成，已生成最近一次 TXT / JSON。"
-                    else "已导出部分结果，请查看扫描警告。")
+                AccessibilityStateRepository.status(when {
+                    summary.nodeCount == 1 && summary.textNodeCount == 0 -> "只获得窗口节点，未读取到聊天文字；请查看扫描警告。"
+                    summary.textNodeCount == 0 -> "已导出窗口，但没有 text 文本；请查看完整节点和扫描警告。"
+                    summary.warnings.isEmpty() -> "扫描完成，已生成最近一次 TXT / JSON。"
+                    else -> "已导出部分结果，请查看扫描警告。"
+                })
                 Log.i(TAG, "Scan nodes=${summary.nodeCount} textNodes=${summary.textNodeCount} " +
                     "candidates=${summary.candidateCount} durationMs=${summary.durationMs}")
             } catch (cancelled: CancellationException) {

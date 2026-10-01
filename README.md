@@ -17,6 +17,14 @@ Android 原生只读技术验证应用，用于测试当前 Android + 微信版�
 
 构建后的 APK 路径：`app/build/outputs/apk/debug/app-debug.apk`。完整构建生成的 release APK 未配置发布签名，不用于此次安装验收。
 
+### 0.1.1 真机诊断修复
+
+修复切换“聊天候选 / 完整节点”时，Compose 延迟读取前一列表却使用当前筛选状态而触发 `No value for order` 崩溃。每行现在保存自己的固定 key 和显示文本，不再在延迟布局回调里读取筛选状态。
+
+如果系统只返回 `className=null`、`visibleToUser=false`、`childCount=0` 的空窗口节点，结果会标为不完整并提示未读到 UI 树，不会把它解释为“聊天没有消息”。Android 13+ 仅在用户主动扫描时清理本服务节点缓存；Android 14+ 的日志补充根节点是否被标记为敏感数据，仍不输出聊天文本。
+
+Android 14+ 可对非辅助工具隐藏敏感无障碍节点（[Android 官方说明](https://developer.android.com/reference/androidx/core/view/accessibility/AccessibilityNodeInfoCompat#setAccessibilityDataSensitive(boolean))）。本应用用于技术验证，保留 `isAccessibilityTool=false`；保护限制下的读取失败也是验证结果。只凭一个空节点不能确认具体限制来源。
+
 ## 工程结构
 
 ```text

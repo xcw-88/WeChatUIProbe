@@ -38,6 +38,7 @@ class NodeTreeScanner {
             }
         }
         visit(root, 0, null)
+        warnings += treeReadWarnings(nodes)
         return TreeScan(nodes, warnings.toList())
     }
 }

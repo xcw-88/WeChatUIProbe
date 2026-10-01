@@ -35,10 +35,10 @@ fun ProbeResultScreen(summary: ExportSummary?, readResult: suspend (String) -> S
         catch (cancelled: CancellationException) { throw cancelled }
         catch (_: Exception) { error = "无法读取导出文件，可能已被清除或替换。" }
     }
-    val objects = remember(report, showNodes) {
-        val array = report?.optJSONArray(if (showNodes) "nodes" else "candidates")
-        if (array == null) emptyList() else List(array.length()) { array.getJSONObject(it) }
+    val rowsResult = remember(report, showNodes) {
+        runCatching { report?.let { resultRows(it, showNodes) } ?: emptyList() }
     }
+    val rows = rowsResult.getOrDefault(emptyList())
     LazyColumn(Modifier.fillMaxSize().safeDrawingPadding(), contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { OutlinedButton(onBack) { Text("返回") } }
@@ -54,19 +54,16 @@ fun ProbeResultScreen(summary: ExportSummary?, readResult: suspend (String) -> S
                 FilterChip(showNodes, { showNodes = true }, label = { Text("完整节点") })
             }
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            if (rowsResult.isFailure) Text("导出文件格式不完整，无法显示此列表。", color = MaterialTheme.colorScheme.error)
             if (summary != null && report == null && error == null) Text("正在读取私有导出文件…")
-            if (report != null && objects.isEmpty()) Text("没有候选消息；可切换完整节点查看 text 与 contentDescription。")
+            if (report != null && rowsResult.isSuccess && rows.isEmpty()) Text("没有候选消息；可切换完整节点查看 text 与 contentDescription。")
         }
-        items(objects, key = { if (showNodes) it.getInt("index") else it.getInt("order") }) { entry ->
+        // LazyColumn may still measure the previous list after the filter state changes.
+        // Each row owns its key/text; deferred lambdas never read the current filter state.
+        items(rows, key = { it.key }) { entry ->
             ProbeCard {
                 SelectionContainer {
-                    Text(if (showNodes) entry.toString(2) else buildString {
-                        appendLine("${entry.getInt("order")}  ${entry.getString("side")}")
-                        appendLine(entry.getString("text"))
-                        val bounds = entry.getJSONObject("bounds")
-                        appendLine("[${bounds.getInt("left")},${bounds.getInt("top")}][${bounds.getInt("right")},${bounds.getInt("bottom")}]")
-                        append("nodeIndex=${entry.getInt("nodeIndex")}")
-                    }, style = MaterialTheme.typography.bodyMedium)
+                    Text(entry.text, style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
