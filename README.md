@@ -11,7 +11,7 @@ Android 原生只读技术验证应用，用于测试当前 Android + 微信版�
 3. 解压后安装 `app-debug.apk`。APK 带调试签名，供技术验证使用。
 4. `verification-reports` 包含单测和 lint 报告；失败运行也尝试上传报告。
 
-云端使用 JDK 17、Gradle 9.3.1、AGP 9.1.1 内置 Kotlin、Compose compiler 2.2.10、Compose BOM 2026.09.00，版本固定。Gradle 分发包带 SHA-256 校验，采用 [Android 官方 AGP 兼容表](https://developer.android.com/build/releases/agp-9-1-0-release-notes) 配置。
+云端使用 JDK 17、Gradle 9.8.0、AGP 9.1.1 内置 Kotlin、Compose compiler 2.2.10、Compose BOM 2026.09.00，版本固定。Gradle 分发包带 SHA-256 校验，采用 [Android 官方 AGP 兼容表](https://developer.android.com/build/releases/agp-9-1-0-release-notes) 配置的最低版本要求，并通过本项目完整构建验证。
 
 如已有本机 Android 环境，也可以运行 `./gradlew build test lint`，Windows 使用 `gradlew.bat` 或 `scripts/verify.ps1 -Full`。本项目不安装本机工具链，也不提交本机 SDK 路径。
 
