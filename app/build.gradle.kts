@@ -15,7 +15,7 @@ android {
     }
     buildFeatures { compose = true }
     providers.environmentVariable("PROBE_DEBUG_KEYSTORE").orNull?.let { keyPath ->
-        signingConfigs.getByName("debug") { storeFile = file(keyPath) }
+        signingConfigs.getByName("debug") { storeFile = rootProject.file(keyPath) }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
