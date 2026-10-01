@@ -25,6 +25,12 @@ Android 原生只读技术验证应用，用于测试当前 Android + 微信版�
 
 Android 14+ 可对非辅助工具隐藏敏感无障碍节点（[Android 官方说明](https://developer.android.com/reference/androidx/core/view/accessibility/AccessibilityNodeInfoCompat#setAccessibilityDataSensitive(boolean))）。本应用用于技术验证，保留 `isAccessibilityTool=false`；保护限制下的读取失败也是验证结果。只凭一个空节点不能确认具体限制来源。
 
+### 0.1.2 窗口选择诊断
+
+启用 `flagRetrieveInteractiveWindows`，只在手动扫描时读取当前窗口列表，优先选择拥有输入焦点的应用窗口，无法取得时退回 `rootInActiveWindow`。选中的根节点仍必须属于微信才能遍历；不读取后台微信窗口、事件 source 或其他应用的文本。日志只记录窗口数量、是否找到焦点窗口和根节点结构，便于排除点击悬浮窗造成的活动窗口偏差。
+
+云端缓存本项目的测试调试签名，供后续 APK 原位更新。此签名仅用于技术验证，不用于正式发布。较早未缓存签名的 APK 仍可能需要卸载 Probe 后安装；卸载会删除 Probe 的扫描记录，不影响微信数据。
+
 ## 工程结构
 
 ```text

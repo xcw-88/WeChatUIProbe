@@ -16,6 +16,11 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
+      - name: Reuse this probe's debug signing key for in-place test updates
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: probe-debug-keystore-v1
       - name: Install exact SDK packages
         run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.0.0"'
       - name: Build, unit tests and strict lint

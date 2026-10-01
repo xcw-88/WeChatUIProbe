@@ -76,7 +76,7 @@ class ProbeExporter(private val directory: File) {
 
     companion object {
         fun renderTxt(report: ScanReport): String = buildString {
-            appendLine("WeChat UI Probe v0.1.1 — read-only user-triggered snapshot")
+            appendLine("WeChat UI Probe v0.1.2 — read-only user-triggered snapshot")
             appendLine("Captured: ${report.capturedAt}")
             appendLine("Device:")
             appendLine("${report.device.manufacturer} ${report.device.model}")
@@ -113,7 +113,7 @@ class ProbeExporter(private val directory: File) {
 
         fun renderJson(report: ScanReport): JSONObject = JSONObject().apply {
             put("schemaVersion", 1)
-            put("appVersion", "0.1.1")
+            put("appVersion", "0.1.2")
             put("capturedAt", report.capturedAt)
             put("packageName", report.packageName)
             put("durationMs", report.durationMs)

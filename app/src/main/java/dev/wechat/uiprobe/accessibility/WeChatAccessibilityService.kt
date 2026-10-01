@@ -7,6 +7,8 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 import dev.wechat.uiprobe.export.DeviceData
 import dev.wechat.uiprobe.export.ProbeStorage
 import dev.wechat.uiprobe.export.ScanReport
@@ -55,7 +57,7 @@ class WeChatAccessibilityService : AccessibilityService() {
                 // Invalidate only this service's node cache for this explicit user request.
                 // Window-event callbacks still never read a tree.
                 if (Build.VERSION.SDK_INT >= 33) clearCache()
-                val root = rootInActiveWindow
+                val root = scanRoot()
                 Log.i(TAG, "User scan rootExists=${root != null}")
                 if (root == null) {
                     AccessibilityStateRepository.foreground(null)
@@ -115,6 +117,25 @@ class WeChatAccessibilityService : AccessibilityService() {
         } catch (error: Exception) {
             Log.e(TAG, "Overlay failed type=${error.javaClass.simpleName}")
             AccessibilityStateRepository.status("无法显示悬浮按钮，请确认悬浮窗权限。")
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun scanRoot(): AccessibilityNodeInfo? {
+        // The active window can change when an overlay is touched. Use the application
+        // window with input focus, never a background WeChat window or a cached event source.
+        // This method is reached only by scanOnce(), after an explicit user click.
+        val currentWindows = windows
+        val focused = currentWindows.firstOrNull {
+            it.type == AccessibilityWindowInfo.TYPE_APPLICATION && it.isFocused
+        }
+        Log.i(TAG, "Window selection count=${currentWindows.size} focusedApplication=${focused != null}")
+        try {
+            val focusedRoot = focused?.root
+            if (focusedRoot != null) return focusedRoot
+            return rootInActiveWindow
+        } finally {
+            if (Build.VERSION.SDK_INT < 33) currentWindows.forEach { it.recycle() }
         }
     }
 
