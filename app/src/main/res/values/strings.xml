@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">WeChat UI Probe</string>
+    <string name="accessibility_description">只读技术验证：窗口事件仅更新应用状态。只有主动点击扫描才读取当前微信节点，并在本机生成最近一次 TXT / JSON；不操作微信、不联网。可随时关闭服务或清除结果。</string>
+</resources>
