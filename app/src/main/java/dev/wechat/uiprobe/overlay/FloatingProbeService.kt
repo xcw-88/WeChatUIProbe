@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
 import android.provider.Settings
+import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.ViewConfiguration
@@ -12,6 +13,7 @@ import android.view.WindowManager
 import android.widget.Button
 import android.widget.LinearLayout
 import dev.wechat.uiprobe.accessibility.AccessibilityStateRepository
+import dev.wechat.uiprobe.accessibility.WeChatAccessibilityService
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -82,7 +84,12 @@ class FloatingProbeService(private val context: Context, private val onScan: () 
                         val display = context.resources.displayMetrics
                         params.x = (initialX + dx.roundToInt()).coerceIn(0, (display.widthPixels - panel.width).coerceAtLeast(0))
                         params.y = (initialY + dy.roundToInt()).coerceIn(0, (display.heightPixels - panel.height - dp(32)).coerceAtLeast(0))
-                        manager.updateViewLayout(panel, params)
+                        try { manager.updateViewLayout(panel, params) }
+                        catch (error: Exception) {
+                            Log.e(WeChatAccessibilityService.TAG, "Overlay drag failed type=${error.javaClass.simpleName}")
+                            hide()
+                            AccessibilityStateRepository.status("悬浮窗口已关闭，请检查权限后重新显示。")
+                        }
                     }
                     true
                 }
@@ -104,9 +111,13 @@ class FloatingProbeService(private val context: Context, private val onScan: () 
     }
 
     fun hide() {
-        window?.let { manager.removeView(it) }
-        window = null
-        scanButton = null
-        AccessibilityStateRepository.overlay(false)
+        try { window?.let { manager.removeView(it) } }
+        catch (error: IllegalArgumentException) {
+            Log.d(WeChatAccessibilityService.TAG, "Overlay already removed type=${error.javaClass.simpleName}")
+        } finally {
+            window = null
+            scanButton = null
+            AccessibilityStateRepository.overlay(false)
+        }
     }
 }
